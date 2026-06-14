@@ -82,7 +82,7 @@ scaledgd-frob-tol = 1e-3
 
 核心结果：
 
-| eta | iter | converged | `||M-M0||_F` | adjusted minimax ratio | backtrack_total |
+| eta | iter | converged | Frobenius error | adjusted minimax ratio | backtrack_total |
 |---:|---:|---|---:|---:|---:|
 | 0.1 | 5000 | FALSE | 8.127 | 6.93 | 0 |
 | 0.25 | 5000 | FALSE | 4.389 | 3.74 | 0 |
@@ -126,7 +126,7 @@ n = 300, 400, 500, 700, 1000, 1500, 2000
 
 所有样本点都按 window 规则收敛。最终 Frobenius error 和 cov-scale adjusted minimax ratio 为：
 
-| n | iter | `||M-M0||_F` | adjusted minimax ratio |
+| n | iter | Frobenius error | adjusted minimax ratio |
 |---:|---:|---:|---:|
 | 300 | 3147 | 5.899 | 3.90 |
 | 400 | 2028 | 5.165 | 3.94 |
