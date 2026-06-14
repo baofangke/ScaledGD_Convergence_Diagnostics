@@ -23,6 +23,7 @@ figures/
   fig_scaledgd_window100_m200.png
   fig_scaledgd_eta1_window100_m500.png
   fig_scaledgd_eta_comparison.png
+  fig_scaledgd_frob_error_vs_sample_size_n300_2000.png
 
 docs/
   window_stop_and_stepsize_notes.md
@@ -30,6 +31,7 @@ docs/
 results/
   baseline_rank2_m200/
   p30_q25_covscale02_m500/
+  p30_q25_covscale02_eta1_sample_size_sweep_n300_2000/
 ```
 
 其中 `results/` 保存每组实验的原始 `config.txt`、逐步迭代历史 CSV、summary CSV 和图。`tables/` 是整理后的核心对照表。
@@ -102,6 +104,56 @@ tables/p30_q25_covscale02_m500_eta_summary.csv
 
 ![ScaledGD eta comparison](figures/fig_scaledgd_eta_comparison.png)
 
+## 实验三：样本量与 Frobenius 误差的关系
+
+第三组实验固定：
+
+```text
+p = 30, q = 25, rank = 2
+cov-scale = 0.2
+scaledgd-eta = 1
+scaledgd-stop-rule = window
+scaledgd-stop-window = 100
+scaledgd-tol = 3e-6
+scaledgd-frob-tol = 1e-3
+```
+
+只改变样本量：
+
+```text
+n = 300, 400, 500, 700, 1000, 1500, 2000
+```
+
+所有样本点都按 window 规则收敛。最终 Frobenius error 和 cov-scale adjusted minimax ratio 为：
+
+| n | iter | `||M-M0||_F` | adjusted minimax ratio |
+|---:|---:|---:|---:|
+| 300 | 3147 | 5.899 | 3.90 |
+| 400 | 2028 | 5.165 | 3.94 |
+| 500 | 2060 | 3.911 | 3.34 |
+| 700 | 1390 | 3.156 | 3.18 |
+| 1000 | 1442 | 2.334 | 2.81 |
+| 1500 | 1004 | 1.877 | 2.77 |
+| 2000 | 1165 | 1.716 | 2.93 |
+
+对 `log(||M-M0||_F)` 关于 `log(n)` 做线性拟合，经验斜率为：
+
+```text
+slope = -0.688
+```
+
+`1/sqrt(n)` 对应斜率为 `-0.5`。这组单 seed 结果显示误差下降趋势不慢于 `1/sqrt(n)`，但仍有有限样本波动。更稳健的 rate 判断需要对每个样本量运行多个 seed 后取平均和误差条。
+
+样本量 rate 图：
+
+![ScaledGD sample-size rate](figures/fig_scaledgd_frob_error_vs_sample_size_n300_2000.png)
+
+对应汇总表：
+
+```text
+tables/p30_q25_covscale02_eta1_sample_size_sweep_n300_2000.csv
+```
+
 ## Moving-Window 停止规则
 
 为了避免单步目标函数变化或单步 Frobenius movement 的偶然波动，实验中加入了 moving-window 停止规则。设窗口长度为 `W`，在第 `k` 步计算：
@@ -154,6 +206,23 @@ Rscript scripts/test_scaledgd_initial_convergence.R `
   --out-root=results_reproduced/p30_q25_covscale02_m500_eta1
 ```
 
+样本量 rate 诊断可以按同样参数改变 `--sample-size`，例如：
+
+```powershell
+Rscript scripts/test_scaledgd_initial_convergence.R `
+  --p=30 `
+  --q=25 `
+  --sample-size=1000 `
+  --cov-scale=0.2 `
+  --scaledgd-eta=1 `
+  --scaledgd-stop-rule=window `
+  --scaledgd-stop-window=100 `
+  --scaledgd-maxit=10000 `
+  --scaledgd-tol=3e-6 `
+  --scaledgd-frob-tol=1e-3 `
+  --out-root=results_reproduced/p30_q25_covscale02_eta1_m1000
+```
+
 ## 关于 minimax rate 的说明
 
 脚本中的标准 rate 为：
@@ -169,4 +238,3 @@ sigma * sqrt(rank * (p + q) / sample_size)
 1. Tian Tong, Cong Ma, Yuejie Chi. [Accelerating Ill-Conditioned Low-Rank Matrix Estimation via Scaled Gradient Descent](https://www.jmlr.org/papers/v22/20-1067.html). Journal of Machine Learning Research, 22(150):1-63, 2021.
 2. Zhenxuan Li, Meng Huang. [Scaled Gradient Descent for Ill-Conditioned Low-Rank Matrix Recovery with Optimal Sampling Complexity](https://arxiv.org/abs/2604.00060). arXiv:2604.00060, 2026.
 3. Stephen Tu, Ross Boczar, Max Simchowitz, Mahdi Soltanolkotabi, Benjamin Recht. [Low-rank Solutions of Linear Matrix Equations via Procrustes Flow](https://proceedings.mlr.press/v48/tu16.html). ICML, 2016.
-
